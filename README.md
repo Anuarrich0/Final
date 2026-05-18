@@ -1,119 +1,91 @@
-# 🤖 Quiz Bot — Telegram-бот для генерации тестов
+# Quiz Bot
 
-Генерирует интерактивные тесты по теме или содержимому файла с помощью Groq (LLaMA 3).
+Telegram-бот, который делает тесты по теме или по содержимому файла. Для генерации вопросов используется Groq.
 
----
+Поддерживаются файлы:
 
-## ⚙️ Установка
+- PDF
+- DOCX
+- TXT
 
-### 1. Клонируй / скопируй файлы
+## Установка
 
-Убедись, что в папке есть:
-```
-bot.py
-requirements.txt
-```
-
-### 2. Создай виртуальное окружение и установи зависимости
+Создать виртуальное окружение и поставить зависимости:
 
 ```bash
 python -m venv venv
-source venv/bin/activate       # Linux / macOS
-venv\Scripts\activate          # Windows
-
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Получи токены
+Для Windows активация окружения:
 
-| Сервис | Где получить |
-|--------|-------------|
-| **Telegram Bot Token** | [@BotFather](https://t.me/BotFather) → `/newbot` |
-| **Groq API Key** | [console.groq.com](https://console.groq.com) → API Keys |
-
-### 4. Задай переменные окружения
-
-**Linux / macOS:**
-```bash
-export BOT_TOKEN="ваш_telegram_токен"
-export GROQ_API_KEY="ваш_groq_ключ"
-```
-
-**Windows (cmd):**
 ```cmd
-set BOT_TOKEN=ваш_telegram_токен
-set GROQ_API_KEY=ваш_groq_ключ
+venv\Scripts\activate
 ```
 
-**Или через `.env` файл** (установи `python-dotenv`):
-```
-BOT_TOKEN=ваш_telegram_токен
-GROQ_API_KEY=ваш_groq_ключ
-```
-И добавь в начало `bot.py`:
-```python
-from dotenv import load_dotenv
-load_dotenv()
+## Настройка
+
+Создать файл `.env` в корне проекта. Можно взять за основу `.env.example`.
+
+Минимально нужны два значения:
+
+```env
+BOT_TOKEN=telegram_bot_token
+GROQ_API_KEY=groq_api_key
 ```
 
-### 5. Запусти бота
+Дополнительные настройки:
+
+```env
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_TEMPERATURE=0.7
+GROQ_MAX_TOKENS=4096
+MAX_FILE_CONTEXT_CHARS=3000
+```
+
+`BOT_TOKEN` создается через BotFather в Telegram. `GROQ_API_KEY` берется в кабинете Groq.
+
+## Запуск
 
 ```bash
 python bot.py
 ```
 
----
+После запуска бот слушает сообщения через polling.
 
-## 🚀 Использование
+## Как пользоваться
 
-| Действие | Что делать |
-|----------|-----------|
-| Тест по теме | Напиши тему, например: `Фотосинтез` или `Python decorators` |
-| Тест по файлу | Пришли PDF, DOCX или TXT как документ |
-| Выбор параметров | Кнопки: количество вопросов (5 / 10 / 15) и сложность |
-| Ответ | Нажми на кнопку с вариантом ответа |
-| Перезапуск | `/start` |
+Отправить боту тему, например:
 
-### Команды
-- `/start` — начать / перезапустить
-- `/help` — справка
-
----
-
-## 🏗️ Структура
-
-```
-bot.py              — основной файл бота
-requirements.txt    — зависимости
+```text
+Python decorators
 ```
 
-### Ключевые компоненты `bot.py`
+Или отправить документ PDF, DOCX или TXT. После этого бот предложит выбрать количество вопросов и сложность.
 
-| Функция | Назначение |
-|---------|-----------|
-| `generate_questions()` | Запрос к Groq, до 3 попыток при невалидном JSON |
-| `parse_questions()` | Строгая валидация структуры вопросов |
-| `handle_topic()` | Приём темы от пользователя |
-| `handle_file()` | Извлечение текста из PDF / DOCX / TXT |
-| `handle_callback()` | Обработка всех кнопок (num / diff / ans) |
-| `show_results()` | Итоговый экран с результатом |
+Команды:
 
----
+- `/start` - начать заново
+- `/help` - справка
 
-## 🔒 Приватность
+## Структура проекта
 
-Бот работает в режиме **одноразовых сессий**:
-- Данные хранятся только в `context.user_data` (оперативная память процесса)
-- После завершения теста сессия очищается (`clear_session`)
-- Никакая информация не пишется в файлы или базу данных
+```text
+bot.py              точка входа
+config.py           настройки и .env
+handlers.py         обработчики Telegram
+llm.py              запросы к Groq
+prompts.py          текст промпта
+question_parser.py  проверка ответа модели
+file_extractors.py  чтение файлов
+keyboards.py        inline-кнопки
+session.py          состояние пользователя
+requirements.txt    зависимости
+```
 
----
+## Примечания
 
-## 🛠️ Зависимости
+Состояние пользователя хранится только в памяти процесса через `context.user_data`.
 
-| Библиотека | Назначение |
-|-----------|-----------|
-| `python-telegram-bot` | Telegram Bot API |
-| `groq` | Groq LLM API (LLaMA 3) |
-| `PyMuPDF` | Чтение PDF |
-| `python-docx` | Чтение DOCX |
+Файл `.env` не нужно коммитить. Для примера настроек есть `.env.example`.
